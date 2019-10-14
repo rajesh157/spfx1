@@ -21,7 +21,11 @@
     "description": { "default": "demo1 description" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "demo1"
+      "description": "demo1",
+      "comments": "Rajesh Comments",
+      "isSPFx": false,
+      "version": "4",
+      "isValid": true
     }
   }]
 }
