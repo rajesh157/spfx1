@@ -99,9 +99,7 @@ html+='</ul>';
               <p class="${ styles.description }">${escape(this.context.pageContext.web.title)}</p>
               <p class="${ styles.description }">${escape(this.context.pageContext.web.serverRelativeUrl)}</p>
               <p class="${ styles.description }">${escape(this.context.pageContext.user.displayName)}</p>
-              <a href="https://aka.ms/spfx" class="${ styles.button }">
-                <span class="${ styles.label }">Learn more</span>
-              </a>
+              
               <button class="ms-Button read-httpButton ${styles.button} readall-Button">
                 <span class="ms-Button-label">Read httpClient All item</span>
               </button>
@@ -113,6 +111,18 @@ html+='</ul>';
               </button>
               <button class="ms-Button create-ajaxButton ${styles.button} readall-Button">
                 <span class="ms-Button-label">Create Ajax item</span>
+              </button>
+              <button class="ms-Button update-httpButton ${styles.button} readall-Button">
+              <span class="ms-Button-label">Update http item</span>
+              </button>
+              <button class="ms-Button update-ajaxButton ${styles.button} readall-Button">
+                <span class="ms-Button-label">Update Ajax item</span>
+              </button>
+              <button class="ms-Button delete-httpButton ${styles.button} readall-Button">
+              <span class="ms-Button-label">Delete http item</span>
+              </button>
+              <button class="ms-Button delete-ajaxButton ${styles.button} readall-Button">
+                <span class="ms-Button-label">Delete Ajax item</span>
               </button>
               <div class="ms-Grid-row ms-bgColor-themeDark ms-fontColor-white ${styles.row}">
                 <div class="ms-Grid-col ms-u-lg10 ms-u-xl8 ms-u-xlPush2 ms-u-lgPush1">
@@ -132,8 +142,126 @@ html+='</ul>';
   this.domElement.querySelector('button.read-ajaxButton').addEventListener('click', () => { webPart.readAjaxItem(); });
   this.domElement.querySelector('button.create-httpButton').addEventListener('click', () => { webPart.createHttpItem(); });
   this.domElement.querySelector('button.create-ajaxButton').addEventListener('click', () => { webPart.createAjaxItem(); });
+  this.domElement.querySelector('button.update-httpButton').addEventListener('click', () => { webPart.updateHttpItem(); });
+  this.domElement.querySelector('button.update-ajaxButton').addEventListener('click', () => { webPart.updateAjaxItem(); });
+  this.domElement.querySelector('button.delete-httpButton').addEventListener('click', () => { webPart.deleteHttpItem(); });
+  this.domElement.querySelector('button.delete-ajaxButton').addEventListener('click', () => { webPart.deleteAjaxItem(); });
 
      //this._renderListAsync();
+  }
+  //delete ajax item
+  private deleteAjaxItem(): void{
+    const digestCache: IDigestCache = this.context.serviceScope.consume(DigestCache.serviceKey);
+    digestCache.fetchDigest(this.context.pageContext.web.serverRelativeUrl)
+    .then((digest: string) => {
+    jquery.ajax({    
+      url: `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('Employees')/items(5)`,    
+      type: "POST",    
+      headers:{
+        "accept": "application/json;odata=verbose",  
+        "content-type": "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "IF-MATCH": "*",
+        "X-HTTP-Method": "DELETE" 
+      
+      },
+       
+      success: (resultData) => {    
+        
+          this.updateStatus(`Item successfully deleted`);
+      },    
+      error : (errorThrown) => {  
+        this.updateStatus('Loading all items failed with error: ' + JSON.stringify(errorThrown));
+      }    
+  });
+
+});
+  }
+//delete http item
+private deleteHttpItem(): void{
+  
+  this.context.spHttpClient.post(`${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('Employees')/items(4)`,  
+  SPHttpClient.configurations.v1,  
+  {  
+    headers: {  
+      'Accept': 'application/json;odata=nometadata',  
+      'Content-type': 'application/json;odata=nometadata',  
+      'odata-version': '',  
+      'IF-MATCH': '*',  
+      'X-HTTP-Method': 'DELETE'   
+    }
+  })  
+  .then((response: SPHttpClientResponse): void => {  
+    
+    this.updateStatus(`Item successfully updated`);
+  }, (error: any): void => {  
+    this.updateStatus('Loading all items failed with error: ' + error);
+  });
+}
+  //update ajax item
+  private updateAjaxItem(): void{
+    const digestCache: IDigestCache = this.context.serviceScope.consume(DigestCache.serviceKey);
+    digestCache.fetchDigest(this.context.pageContext.web.serverRelativeUrl)
+    .then((digest: string) => {
+    jquery.ajax({    
+      url: `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('Employees')/items(2)`,    
+      type: "POST",    
+      headers:{
+        "accept": "application/json;odata=verbose",  
+        "content-type": "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "IF-MATCH": "*",
+        "X-HTTP-Method": "MERGE" 
+      
+      },
+      data: JSON.stringify({  
+        '__metadata': {  
+            'type': 'SP.Data.EmployeesListItem'  
+        },  
+        'Title': 'Name2'
+    }),  
+      success: (resultData) => {    
+        console.log("Rajesh Update")         ;
+          console.log(resultData);
+          this.updateStatus(`Item successfully updated`);
+      },    
+      error : (errorThrown) => {  
+        this.updateStatus('Loading all items failed with error: ' + JSON.stringify(errorThrown));
+      }    
+  });
+
+});
+  }
+
+  //update http item
+
+  private updateHttpItem(): void{
+    const body: string = JSON.stringify({  
+      'Title': "test1"
+    });  
+    
+    this.context.spHttpClient.post(`${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('Employees')/items(2)`,  
+    SPHttpClient.configurations.v1,  
+    {  
+      headers: {  
+        'Accept': 'application/json;odata=nometadata',  
+        'Content-type': 'application/json;odata=nometadata',  
+        'odata-version': '',  
+        'IF-MATCH': '*',  
+        'X-HTTP-Method': 'MERGE'   
+      },  
+      body: body  
+    })  
+    .then((response: SPHttpClientResponse): Promise<ISPList> => {  
+      
+      return response.json();  
+    })  
+    .then((item: ISPList): void => {      
+     
+      this.updateStatus(`Item '${item.Title}' (ID: ${item.Id}) successfully updated`);
+    }, (error: any): void => {  
+      this.updateStatus('Loading all items failed with error: ' + error);
+    });
   }
 
   //create ajax item
@@ -156,10 +284,10 @@ html+='</ul>';
         '__metadata': {  
             'type': 'SP.Data.EmployeesListItem'  
         },  
-        'Title': 'Name1'
+        'Title': 'Manish Kumar Jha'
     }),  
       success: (resultData) => {             
-          //alert(resultData.d.results);
+          console.log(resultData.d.results);
           this.updateStatus(`Item successfully created`);
       },    
       error : (errorThrown) => {  
