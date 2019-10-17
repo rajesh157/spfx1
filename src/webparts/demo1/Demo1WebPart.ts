@@ -15,6 +15,8 @@ import styles from './Demo1WebPart.module.scss';
 import * as strings from 'Demo1WebPartStrings';
 import * as jquery from 'jquery';
 import { IDigestCache, DigestCache } from '@microsoft/sp-http';
+import * as pnp from 'sp-pnp-js';
+import { DefaultButton, PrimaryButton, Stack, IStackTokens } from 'office-ui-fabric-react';
 
 export interface IDemo1WebPartProps {
   description: string;
@@ -89,7 +91,7 @@ html+='</ul>';
         <div class="${ styles.container }">
           <div class="${ styles.row }">
             <div class="${ styles.column }">
-              <span class="${ styles.title }">Welcome to SharePoint!</span>
+             <!-- <span class="${ styles.title }">Welcome to SharePoint!</span>
               <p class="${ styles.subTitle }">Customize SharePoint experiences using Web Parts.</p>
               <p class="${ styles.description }">${escape(this.properties.description)}</p>
               <p class="${ styles.description }">${escape(this.properties.comments)}</p>
@@ -98,7 +100,7 @@ html+='</ul>';
               <p class="${ styles.description }">${(this.properties.isValid)}</p>
               <p class="${ styles.description }">${escape(this.context.pageContext.web.title)}</p>
               <p class="${ styles.description }">${escape(this.context.pageContext.web.serverRelativeUrl)}</p>
-              <p class="${ styles.description }">${escape(this.context.pageContext.user.displayName)}</p>
+              <p class="${ styles.description }">${escape(this.context.pageContext.user.displayName)}</p> -->
               
               <button class="ms-Button read-httpButton ${styles.button} readall-Button">
                 <span class="ms-Button-label">Read httpClient All item</span>
@@ -124,6 +126,20 @@ html+='</ul>';
               <button class="ms-Button delete-ajaxButton ${styles.button} readall-Button">
                 <span class="ms-Button-label">Delete Ajax item</span>
               </button>
+
+              <button id="AddItem"  type="submit" >Add PnP</button>
+              <button id="UpdateItem" type="submit" >Update PnP</button>
+              <button id="DeleteItem"  type="submit" >Delete PnP</button>
+
+              <DefaultButton  
+                  data-automation-id="greet"  
+                  target="_blank"  
+                  title="Greet the user!"  
+                  onClick={this._greetClicked}  
+                  >  
+                  Greet  
+                </DefaultButton>  
+
               <div class="ms-Grid-row ms-bgColor-themeDark ms-fontColor-white ${styles.row}">
                 <div class="ms-Grid-col ms-u-lg10 ms-u-xl8 ms-u-xlPush2 ms-u-lgPush1">
                   <div class="status"></div>
@@ -146,8 +162,36 @@ html+='</ul>';
   this.domElement.querySelector('button.update-ajaxButton').addEventListener('click', () => { webPart.updateAjaxItem(); });
   this.domElement.querySelector('button.delete-httpButton').addEventListener('click', () => { webPart.deleteHttpItem(); });
   this.domElement.querySelector('button.delete-ajaxButton').addEventListener('click', () => { webPart.deleteAjaxItem(); });
+  document.getElementById('AddItem').addEventListener('click', () => { webPart.AddPnPItem(); });
+  document.getElementById('UpdateItem').addEventListener('click', () => { webPart.UpdatePnPItem(); });
+  document.getElementById('DeleteItem').addEventListener('click', () => { webPart.DeletePnPItem(); });
+  
 
      //this._renderListAsync();
+  }
+  private _greetClicked(): void {  
+    alert('Hello ');  
+  }
+
+  private AddPnPItem(): void{
+    alert("add1");
+    pnp.sp.web.lists.getByTitle('Employees').items.add({
+      Title : "Manish Jha",
+      Age: "22"
+    });
+    alert("Item added successfully!");
+  }
+  private UpdatePnPItem(): void{
+    alert("update1");
+    pnp.sp.web.lists.getByTitle('Employees').items.getById(6).update({     
+      Age: "42"
+    });
+    alert("Item Update successfully");
+  }
+  private DeletePnPItem(): void{
+    alert("delete1");
+    pnp.sp.web.lists.getByTitle('Employees').items.getById(6).delete();
+    alert("item deleted successfully");
   }
   //delete ajax item
   private deleteAjaxItem(): void{
